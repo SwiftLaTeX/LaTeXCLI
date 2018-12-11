@@ -10,7 +10,7 @@ from flask_limiter import Limiter
 from flask_expects_json import expects_json
 import LaTeXCompiler
 
-queue = Queue(connection=Redis())
+queue = Queue('latexcli', connection=Redis())
 app = Flask(__name__)
 
 def get_token_from_header():
