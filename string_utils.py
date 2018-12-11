@@ -1,7 +1,7 @@
 import string
 import random
 import hashlib
-
+import re
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -15,3 +15,18 @@ def gen_random_string(N):
 def hash_filename(name):
     hash_object = hashlib.md5(name.encode())
     return hash_object.hexdigest()
+
+
+def is_secure_filename(name):
+    if not bool(re.match(r'^[a-zA-Z\-\.\d\/\-]+$', name)):
+        return False
+
+    if ".." in name or "//" in name:
+        return False
+
+    if name.startswith("/") or name.startswith("."):
+        return False
+
+    return True
+
+

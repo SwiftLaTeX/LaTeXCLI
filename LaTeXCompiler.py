@@ -2,7 +2,7 @@ import config
 import subprocess
 import time
 import logging
-
+import os
 
 def compile_latex_project(project_dir, main_file, mode):
     cmd = ["latexmk", "-pdf", main_file]
@@ -14,7 +14,7 @@ def compile_latex_project(project_dir, main_file, mode):
         # my_env = os.environ.copy()
         # my_env['LD_PRELOAD'] = path_utils.get_pmalloc_path()
 
-    pro = subprocess.Popen(cmd, cwd=project_dir)
+    pro = subprocess.Popen(cmd, cwd=os.path.join(config.WORKPLACE_DIR, project_dir))
 
     wait_count = 0
     r = None
