@@ -1,17 +1,14 @@
 import requests
 jsond = {
     'main': "main.tex",
+    'session':'cXfRZUqW4TpCrvzLR1NkVgoRhP9os9Dg',
     'resources': [
         {
             'name':'main.tex',
             'url':'https://www3.nd.edu/~powers/ame.20231/sample.tex',
-            'use_cache':'yes'
+            'modified_time':1300,
         },
-        {
-            'name':'sample.figure.eps',
-            'url':'https://www3.nd.edu/~powers/ame.20231/sample.figure.eps',
-            'use_cache':'yes'
-        }
+
     ],
     'mode': 'simple'
 }

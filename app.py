@@ -1,4 +1,4 @@
-from redis import Redis
+import redis
 from rq import Queue
 from flask import Flask, request, jsonify, send_from_directory, g, abort
 import string_utils
@@ -9,9 +9,11 @@ import config
 from flask_limiter import Limiter
 from flask_expects_json import expects_json
 import LaTeXCompiler
-
-queue = Queue('latexcli', connection=Redis())
+RATELIMIT_STORAGE_URL = config.REDIS_URL
+redis_instance = redis.from_url(config.REDIS_URL)
+queue = Queue('latexcli', connection=redis_instance)
 app = Flask(__name__)
+app.config.from_object(__name__)
 
 def get_token_from_header():
     ALLOWED_TOKEN = ['12345678123456781234567812345678']
@@ -43,7 +45,7 @@ compiler_schema = {
                 {
                     'url': {'type':'string'},
                     'name':{'type':'string'},
-                    'use_cache':{'type':'string'}
+                    'modified_time':{'type':'integer'}
                 },
                 'required': ['url', 'name']
 
@@ -97,12 +99,14 @@ def compile_endpoint():
             return jsonify({"result": "failed", "code": "-01", "reason": "invalid filename detected"}), 500
         need_download = True
         target_filename = os.path.join(config.WORKPLACE_DIR, compile_session, res['name'])
-        if "use_cache" in res and res['use_cache'] == "yes" and os.path.exists(target_filename):
+        if "modified_time" in res and res['modified_time'] != 0 and os.path.exists(target_filename) and \
+            int(redis_instance.get(res['url'])) == res['modified_time']:
             need_download = False
         if need_download:
             if not request_utils.get_remote_file(res['url'], target_filename):
                 return jsonify({"result": "failed", "code": "-06",
                                 "reason": "Unable to fetch remote file, either it is too large or unreachable!"}), 500
+            redis_instance.set(res['url'], res['modified_time'])
 
 
 
