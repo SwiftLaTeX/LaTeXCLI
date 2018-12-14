@@ -1,0 +1,79 @@
+version: '3.3'
+services:
+    latexcli-web:
+        restart: always
+        image: swiftlatex/latexcli
+        container_name: latexcli
+        depends_on:
+            - redis_server
+        ports:
+            - 80:5000
+        environment:
+            REDIS_URL: redis://redis_server:6379
+        volumes:
+          - ~/workplace:/app/workplace
+    latexcli-worker-1:
+      restart: always
+      image: swiftlatex/latexcli
+      container_name: latexcli-worker-1
+      depends_on:
+        - redis_server
+      environment:
+        REDIS_URL: redis://redis_server:6379
+      command:
+        python3 worker.py
+      volumes:
+        - ~/workplace:/app/workplace
+    latexcli-worker-2:
+      restart: always
+      image: swiftlatex/latexcli
+      container_name: latexcli-worker-2
+      depends_on:
+        - redis_server
+      environment:
+        REDIS_URL: redis://redis_server:6379
+      command:
+        python3 worker.py
+      volumes:
+        - ~/workplace:/app/workplace
+    latexcli-worker-3:
+      restart: always
+      image: swiftlatex/latexcli
+      container_name: latexcli-worker-3
+      depends_on:
+        - redis_server
+      environment:
+        REDIS_URL: redis://redis_server:6379
+      command:
+        python3 worker.py
+      volumes:
+        - ~/workplace:/app/workplace
+    latexcli-worker-4:
+      restart: always
+      image: swiftlatex/latexcli
+      container_name: latexcli-worker-4
+      depends_on:
+        - redis_server
+      environment:
+        REDIS_URL: redis://redis_server:6379
+      command:
+        python3 worker.py
+      volumes:
+        - ~/workplace:/app/workplace
+    latexcli-cleaner:
+        restart: always
+        image: swiftlatex/latexcli
+        container_name: latexcli-cleaner
+        command:
+          python3 cleaner.py
+        volumes:
+          - ~/workplace:/app/workplace
+    redis_server:
+        restart: always
+        image: redis
+        container_name: redis_server
+        expose:
+            - 6379
+        volumes:
+            - ~/redis_data:/data
+

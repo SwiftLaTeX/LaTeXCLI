@@ -98,9 +98,10 @@ def compile_endpoint():
         if not string_utils.is_secure_filename(res['name']):
             return jsonify({"result": "failed", "code": "-01", "reason": "invalid filename detected"}), 500
         need_download = True
+        last_save_time = redis_instance.get(res['url'])
         target_filename = os.path.join(config.WORKPLACE_DIR, compile_session, res['name'])
         if "modified_time" in res and res['modified_time'] != 0 and os.path.exists(target_filename) and \
-            int(redis_instance.get(res['url'])) == res['modified_time']:
+            last_save_time is not None and int(last_save_time) == res['modified_time']:
             need_download = False
         if need_download:
             if not request_utils.get_remote_file(res['url'], target_filename):
