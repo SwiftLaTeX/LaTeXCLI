@@ -1,7 +1,7 @@
 import requests
 jsond = {
     'main': "main.tex",
-    'session':'cXfRZUqW4TpCrvzLR1NkVgoRhP9os9Dg',
+    'session':'JkYAUfNnjx8w80nUYH51vteAbhSNCu8o',
     'resources': [
         {
             'name':'main.tex',
@@ -12,5 +12,5 @@ jsond = {
     ],
     'mode': 'simple'
 }
-r = requests.post('http://127.0.0.1:5000/compiler', json=jsond)
+r = requests.post('http://130.216.216.198/compiler', json=jsond)
 print(r.text)

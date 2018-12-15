@@ -82,12 +82,14 @@ def compile_endpoint():
     if 'mode' in g.data and g.data['mode'] == "full":
         mode = "full"
 
+    build_session_path = True
 
     if 'session' in g.data:
         compile_session = g.data['session']
         if len(compile_session) != config.SESSION_LENGTH or not os.path.exists(os.path.join(config.WORKPLACE_DIR, compile_session)):
-            return jsonify({"result": "failed", "code": "-06", "reason": "invalid session detected!"}), 500
-    else:
+            build_session_path = False
+
+    if build_session_path:
         compile_session = string_utils.gen_random_string(config.SESSION_LENGTH)
         os.mkdir(os.path.join(config.WORKPLACE_DIR, compile_session))
 
