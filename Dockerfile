@@ -8,10 +8,10 @@ RUN   apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -q -y wge
     python3 \
     python3-pip \
     git
+COPY pdftex /usr/bin/pdftex
 RUN  git clone https://github.com/SwiftLaTeX/LaTeXCLI.git /app && \
     pip3 install -r /app/requirements.txt && \
-    wget http://130.216.216.196/201812/pdftex -O /usr/bin/pdftex && \
-    chmod +x /usr/bin/pdftex && \
+    chmod +x /usr/bin/pdftex && echo "0.1" && fmtutil-sys --all
 
 
 WORKDIR /app

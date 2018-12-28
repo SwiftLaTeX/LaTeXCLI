@@ -103,6 +103,11 @@ def compile_endpoint():
         if not string_utils.is_secure_filename(res['name']):
             return jsonify({"result": "failed", "code": "-01", "reason": "invalid filename detected"}), 500
         target_filename = os.path.join(config.WORKPLACE_DIR, compile_session, res['name'])
+
+        target_dirname = os.path.dirname(target_filename)
+        if not os.path.exists(target_dirname):
+            os.makedirs(target_dirname, exist_ok=True)
+
         if res['url'].startswith('data://'):
             with open(target_filename, 'w') as fb:
                 fb.write(res['url'][7:])
