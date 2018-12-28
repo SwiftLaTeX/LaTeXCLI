@@ -15,19 +15,22 @@ queue = Queue('latexcli', connection=redis_instance)
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-def get_token_from_header():
-    ALLOWED_TOKEN = ['12345678123456781234567812345678']
-    s_token = request.headers.get('S-TOKEN', "00000000000000000000000000000000")
-    if isinstance(s_token, str) and s_token in ALLOWED_TOKEN:
-        return s_token
-    return "00000000000000000000000000000000"
+def share_key_func():
+    return "guest"
+
 
 
 limiter = Limiter(
     app,
-    key_func=get_token_from_header,
+    key_func=share_key_func,
 )
 
+@limiter.request_filter
+def verify_token():
+    s_token = request.headers.get('S-TOKEN', "00000000000000000000000000000000")
+    if isinstance(s_token, str) and s_token == config.APIKEY:
+        return True
+    return False
 
 compiler_schema = {
     'type': 'object',
@@ -63,7 +66,7 @@ def hello_world():
 
 @app.route('/<path:path>')
 def serve_file(path):
-    if path.endswith(".pdf") or path.endswith(".log") and string_utils.is_secure_filename(path):
+    if (path.endswith(".pdf") or path.endswith(".log")) and string_utils.is_secure_filename(path):
         return send_from_directory(config.WORKPLACE_DIR, path)
     return abort(404)
 
@@ -76,7 +79,7 @@ def compile_endpoint():
     compile_session = ""
     mode = "simple"
     main_file = g.data['main']
-    if not main_file.endswith(".tex"):
+    if len(main_file) < 5 and not main_file.endswith(".tex"):
         return jsonify({"result": "failed", "code": "-05", "reason": "invalid main file detected!"}), 500
 
     if 'mode' in g.data and g.data['mode'] == "full":
@@ -86,7 +89,7 @@ def compile_endpoint():
 
     if 'session' in g.data:
         compile_session = g.data['session']
-        if len(compile_session) != config.SESSION_LENGTH or not os.path.exists(os.path.join(config.WORKPLACE_DIR, compile_session)):
+        if string_utils.is_valid_sessionid(compile_session) or not os.path.exists(os.path.join(config.WORKPLACE_DIR, compile_session)):
             build_session_path = False
 
     if build_session_path:
@@ -99,17 +102,21 @@ def compile_endpoint():
     for res in g.data['resources']:
         if not string_utils.is_secure_filename(res['name']):
             return jsonify({"result": "failed", "code": "-01", "reason": "invalid filename detected"}), 500
-        need_download = True
-        last_save_time = redis_instance.get(res['url'])
         target_filename = os.path.join(config.WORKPLACE_DIR, compile_session, res['name'])
-        if "modified_time" in res and res['modified_time'] != 0 and os.path.exists(target_filename) and \
-            last_save_time is not None and int(last_save_time) == res['modified_time']:
-            need_download = False
-        if need_download:
-            if not request_utils.get_remote_file(res['url'], target_filename):
-                return jsonify({"result": "failed", "code": "-06",
-                                "reason": "Unable to fetch remote file, either it is too large or unreachable!"}), 500
-            redis_instance.set(res['url'], res['modified_time'])
+        if res['url'].startswith('data://'):
+            with open(target_filename, 'w') as fb:
+                fb.write(res['url'][7:])
+        else:
+            need_download = True
+            last_save_time = redis_instance.get(res['url'])
+            if "modified_time" in res and res['modified_time'] != 0 and os.path.exists(target_filename) and \
+                last_save_time is not None and int(last_save_time) == res['modified_time']:
+                need_download = False
+            if  need_download:
+                if not request_utils.get_remote_file(res['url'], target_filename):
+                    return jsonify({"result": "failed", "code": "-06",
+                                    "reason": "Unable to fetch remote file, either it is too large or unreachable!"}), 500
+                redis_instance.set(res['url'], res['modified_time'])
 
 
 

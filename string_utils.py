@@ -2,6 +2,7 @@ import string
 import random
 import hashlib
 import re
+import config
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -30,3 +31,12 @@ def is_secure_filename(name):
     return True
 
 
+
+def is_valid_sessionid(sessionid):
+    if len(sessionid) != config.SESSION_LENGTH:
+        return False
+
+    if not bool(re.match(r'^[a-zA-Z\d]+$', sessionid)):
+        return False
+
+    return True
