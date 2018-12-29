@@ -111,7 +111,7 @@ def compile_endpoint():
             os.makedirs(target_dirname, exist_ok=True)
 
         if res['url'].startswith('data://'):
-            with open(target_filename, 'w') as fb:
+            with open(target_filename, 'w', encoding='utf8', errors="ignore") as fb:
                 fb.write(res['url'][7:])
         else:
             need_download = True
