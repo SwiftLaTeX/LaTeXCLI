@@ -8,6 +8,7 @@ import os
 import config
 from flask_limiter import Limiter
 from flask_expects_json import expects_json
+from flask_cors import cross_origin
 import LaTeXCompiler
 RATELIMIT_STORAGE_URL = config.REDIS_URL
 redis_instance = redis.from_url(config.REDIS_URL)
@@ -65,6 +66,7 @@ def hello_world():
     return jsonify({"result": "okay", "code": "00", "queue": len(queue)})
 
 @app.route('/<path:path>')
+@cross_origin()
 def serve_file(path):
     if (path.endswith(".pdf") or path.endswith(".log")) and string_utils.is_secure_filename(path):
         return send_from_directory(config.WORKPLACE_DIR, path)
