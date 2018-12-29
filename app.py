@@ -136,7 +136,7 @@ def compile_endpoint():
             break
 
     if job.result is None:
-        return jsonify({"result": "failed", "code": "-03", "reason": "task timeout"})
+        return jsonify({"result": "failed", "code": "-03", "reason": "task timeout"}), 500
     else:
         return jsonify({"result": "okay", "code": "00", "compile_result": job.result,
                         "pdf": outputpdfname, "log":outputlogname, "session": compile_session})
